@@ -1,15 +1,24 @@
 
+import { db } from '../db';
+import { travelAgencySettingsTable } from '../db/schema';
 import { type CreateTravelAgencySettingsInput, type TravelAgencySettings } from '../schema';
 
-export async function createTravelAgencySettings(input: CreateTravelAgencySettingsInput): Promise<TravelAgencySettings> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating travel agency settings (name and address)
-    // These settings will be used for invoices and payment receipts display.
-    return Promise.resolve({
-        id: 1,
+export const createTravelAgencySettings = async (input: CreateTravelAgencySettingsInput): Promise<TravelAgencySettings> => {
+  try {
+    // Insert travel agency settings record
+    const result = await db.insert(travelAgencySettingsTable)
+      .values({
         name: input.name,
-        address: input.address,
-        created_at: new Date(),
-        updated_at: new Date()
-    });
-}
+        address: input.address
+      })
+      .returning()
+      .execute();
+
+    // Return the created record
+    const settings = result[0];
+    return settings;
+  } catch (error) {
+    console.error('Travel agency settings creation failed:', error);
+    throw error;
+  }
+};

@@ -1,15 +1,27 @@
 
+import { db } from '../db';
+import { currencyConversionsTable } from '../db/schema';
 import { type CreateCurrencyConversionInput, type CurrencyConversion } from '../schema';
 
-export async function createCurrencyConversion(input: CreateCurrencyConversionInput): Promise<CurrencyConversion> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating currency conversion rates.
-    // These rates will convert other currencies (USD, IDR) to SAR (Riyal).
-    return Promise.resolve({
-        id: 1,
+export const createCurrencyConversion = async (input: CreateCurrencyConversionInput): Promise<CurrencyConversion> => {
+  try {
+    // Insert currency conversion record
+    const result = await db.insert(currencyConversionsTable)
+      .values({
         currency_name: input.currency_name,
-        conversion_rate: input.conversion_rate,
-        created_at: new Date(),
-        updated_at: new Date()
-    });
-}
+        conversion_rate: input.conversion_rate.toString() // Convert number to string for numeric column
+      })
+      .returning()
+      .execute();
+
+    // Convert numeric fields back to numbers before returning
+    const currencyConversion = result[0];
+    return {
+      ...currencyConversion,
+      conversion_rate: parseFloat(currencyConversion.conversion_rate) // Convert string back to number
+    };
+  } catch (error) {
+    console.error('Currency conversion creation failed:', error);
+    throw error;
+  }
+};

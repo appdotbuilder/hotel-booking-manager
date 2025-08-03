@@ -1,9 +1,21 @@
 
+import { db } from '../db';
+import { expensesTable } from '../db/schema';
 import { type Expense } from '../schema';
 
-export async function getExpenses(): Promise<Expense[]> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching all expenses from the database.
-    // Access restricted to Staff and Administrator roles.
-    return Promise.resolve([]);
-}
+export const getExpenses = async (): Promise<Expense[]> => {
+  try {
+    const results = await db.select()
+      .from(expensesTable)
+      .execute();
+
+    // Convert numeric fields back to numbers
+    return results.map(expense => ({
+      ...expense,
+      amount: parseFloat(expense.amount)
+    }));
+  } catch (error) {
+    console.error('Fetching expenses failed:', error);
+    throw error;
+  }
+};

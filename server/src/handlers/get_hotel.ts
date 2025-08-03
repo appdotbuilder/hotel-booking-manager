@@ -1,19 +1,29 @@
 
+import { db } from '../db';
+import { hotelsTable } from '../db/schema';
 import { type Hotel } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function getHotel(id: number): Promise<Hotel | null> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching a single hotel by ID.
-    return Promise.resolve({
-        id: id,
-        name: "Sample Hotel",
-        location: "Sample Location",
-        room_type: "Double",
-        meal_package: "Full Board",
-        cost_price: 100,
-        markup_percentage: 20,
-        selling_price: 120,
-        created_at: new Date(),
-        updated_at: new Date()
-    });
-}
+export const getHotel = async (id: number): Promise<Hotel | null> => {
+  try {
+    const results = await db.select()
+      .from(hotelsTable)
+      .where(eq(hotelsTable.id, id))
+      .execute();
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const hotel = results[0];
+    return {
+      ...hotel,
+      cost_price: parseFloat(hotel.cost_price),
+      markup_percentage: parseFloat(hotel.markup_percentage),
+      selling_price: parseFloat(hotel.selling_price)
+    };
+  } catch (error) {
+    console.error('Hotel retrieval failed:', error);
+    throw error;
+  }
+};

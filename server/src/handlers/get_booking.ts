@@ -1,21 +1,31 @@
 
+import { db } from '../db';
+import { bookingsTable } from '../db/schema';
 import { type Booking } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function getBooking(id: number): Promise<Booking | null> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching a single booking by ID with all related data.
-    return Promise.resolve({
-        id: id,
-        invoice_number: `INV-${id}`,
-        customer_id: 1,
-        hotel_id: 1,
-        check_in_date: new Date(),
-        check_out_date: new Date(),
-        room_quantity: 2,
-        hotel_subtotal: 500,
-        services_total: 100,
-        total_amount: 600,
-        created_at: new Date(),
-        updated_at: new Date()
-    });
-}
+export const getBooking = async (id: number): Promise<Booking | null> => {
+  try {
+    const results = await db.select()
+      .from(bookingsTable)
+      .where(eq(bookingsTable.id, id))
+      .execute();
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const booking = results[0];
+    
+    // Convert numeric fields back to numbers
+    return {
+      ...booking,
+      hotel_subtotal: parseFloat(booking.hotel_subtotal),
+      services_total: parseFloat(booking.services_total),
+      total_amount: parseFloat(booking.total_amount)
+    };
+  } catch (error) {
+    console.error('Booking retrieval failed:', error);
+    throw error;
+  }
+};

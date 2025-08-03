@@ -1,8 +1,21 @@
 
+import { db } from '../db';
+import { currencyConversionsTable } from '../db/schema';
 import { type CurrencyConversion } from '../schema';
 
-export async function getCurrencyConversions(): Promise<CurrencyConversion[]> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching all currency conversion rates from the database.
-    return Promise.resolve([]);
-}
+export const getCurrencyConversions = async (): Promise<CurrencyConversion[]> => {
+  try {
+    const results = await db.select()
+      .from(currencyConversionsTable)
+      .execute();
+
+    // Convert numeric fields back to numbers
+    return results.map(conversion => ({
+      ...conversion,
+      conversion_rate: parseFloat(conversion.conversion_rate)
+    }));
+  } catch (error) {
+    console.error('Failed to fetch currency conversions:', error);
+    throw error;
+  }
+};
